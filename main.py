@@ -1,18 +1,18 @@
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 import os
 import yt_dlp
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
 
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-@app.get("/")
-def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/", response_class=HTMLResponse)
+def home():
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.post("/get-info")
 async def get_info(url: str = Form(...)):
