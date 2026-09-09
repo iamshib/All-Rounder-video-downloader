@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>প্রো ভিডিও ডাউনলোডার</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl w-full max-w-lg">
+        <h1 class="text-2xl font-bold text-center mb-6 text-indigo-400">🚀 প্রো ক্লাউড ভিডিও ডাউনলোডার</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">ভিডিও লিংক দিন:</label>
+                <input type="text" id="url" placeholder="https://..." class="w-full p-3 bg-slate-700 rounded-lg border border-slate-600 focus:outline-none focus:border-indigo-500">
+            </div>
+            
+            <button onclick="fetchInfo()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-lg font-semibold transition">ফরম্যাট ও কোয়ালিটি লোড করুন</button>
+            
+            <div id="options-container" class="hidden space-y-4 border-t border-slate-700 pt-4">
+                <p id="video-title" class="text-sm text-green-400 font-medium"></p>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">কোয়ালিটি সিলেক্ট করুন:</label>
+                    <select id="quality" class="w-full p-3 bg-slate-700 rounded-lg border border-slate-600 focus:outline-none">
+                        <option value="bestvideo+bestaudio/best">🔥 সেরা কোয়ালিটি (ভিডিও + অডিও)</option>
+                        <option value="bestaudio/best">🎵 শুধু অডিও (MP3)</option>
+                        <option value="bestvideo[height<=1080]+bestaudio/best[height<=1080]">🖥️ Full HD - 1080p</option>
+                        <option value="bestvideo[height<=720]+bestaudio/best[height<=720]">📱 HD - 720p</option>
+                        <option value="bestvideo[height<=480]+bestaudio/best[height<=480]">📉 সাধারণ - 480p</option>
+                    </select>
+                </div>
+                
+                <button onclick="startDownload()" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-lg font-semibold transition">ডাউনলোড শুরু করুন</button>
+            </div>
+            
+            <div id="status" class="text-center text-sm text-yellow-400 mt-2"></div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchInfo() {
+            let url = document.getElementById('url').value;
+            let status = document.getElementById('status');
+            if(!url) { status.innerText = "দয়া করে লিংক দিন!"; return; }
+            
+            status.innerText = "বিশ্লেষণ করা হচ্ছে...";
+            let formData = new FormData(); formData.append('url', url);
+            
+            let res = await fetch('/get-info', { method: 'POST', body: formData });
+            let data = await res.json();
+            
+            if(data.success) {
+                document.getElementById('video-title').innerText = "শিরোনাম: " + data.title;
+                document.getElementById('options-container').classList.remove('hidden');
+                status.innerText = "";
+            } else {
+                status.innerText = "ত্রুটি: " + data.error;
+            }
+        }
+
+        async function startDownload() {
+            let url = document.getElementById('url').value;
+            let quality = document.getElementById('quality').value;
+            let status = document.getElementById('status');
+            
+            status.innerText = "ডাউনলোড প্রসেস হচ্ছে, দয়া করে অপেক্ষা করুন...";
+            let formData = new FormData();
+            formData.append('url', url);
+            formData.append('quality', quality);
+            
+            let res = await fetch('/download', { method: 'POST', body: formData });
+            if(res.ok) {
+                let blob = await res.blob();
+                let downloadUrl = window.URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = "video.mp4";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                status.innerText = "✅ ডাউনলোড সফল হয়েছে!";
+            } else {
+                status.innerText = "❌ ডাউনলোডে সমস্যা হয়েছে।";
+            }
+        }
+    </script>
+</body>
+</html>
