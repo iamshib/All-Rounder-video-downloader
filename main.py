@@ -17,7 +17,10 @@ def home():
 @app.post("/get-info")
 async def get_info(url: str = Form(...)):
     try:
-        ydl_opts = {'quiet': True}
+        ydl_opts = {
+            'quiet': True,
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+        }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             title = info.get('title', 'Unknown Video')
@@ -34,6 +37,7 @@ async def download_video(url: str = Form(...), quality: str = Form(...)):
             'outtmpl': os.path.join(DOWNLOAD_DIR, '%(title)s.%(ext)s'),
             'restrictfilenames': True,
             'merge_output_format': 'mp4',
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
         }
         
         if 'bestaudio' in quality and 'bestvideo' not in quality:
